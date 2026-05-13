@@ -1,0 +1,32 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:${WEBUI_DOCKER_TAG-main}
+    container_name: open-webui
+    restart: unless-stopped
+    volumes:
+      - open-webui:/app/backend/data
+    environment:
+      - 'OLLAMA_BASE_URL=http://host.docker.internal:11434'
+      - 'WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  caddy:
+    image: caddy:alpine
+    container_name: caddy_openwebui
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - caddy_certs:/certs
+      - caddy_config:/config
+      - caddy_data:/data
+      - caddy_sites:/srv
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+
+volumes:
+  open-webui: {}
+  caddy_certs: {}
+  caddy_config: {}
+  caddy_data: {}
+  caddy_sites: {}
