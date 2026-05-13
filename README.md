@@ -105,6 +105,8 @@ podman run --rm --device nvidia.com/gpu=all nvidia/cuda:12.0-base nvidia-smi
 
 Open WebUI のセッショントークン (JWT) 署名に使用するランダム文字列を生成する。外部サービスから取得するものではない。
 
+**このキーが漏洩すると、攻撃者が任意のユーザーとして有効なセッショントークンを偽造できる。** リポジトリには絶対にコミットしないこと。
+
 ```bash
 openssl rand -hex 32
 ```
@@ -121,6 +123,16 @@ WEBUI_SECRET_KEY=<生成した文字列>
 ```
 
 `.env` は `.gitignore` で除外済みのためコミットされない。
+
+#### キーが漏洩した場合
+
+新しいキーを生成して `.env` を更新し、コンテナを再起動する。キーが変わると既存の全セッションが無効化され、全ユーザーが再ログインを求められる。
+
+```bash
+openssl rand -hex 32   # 新しいキーを生成
+# .env の WEBUI_SECRET_KEY を更新してから:
+podman-compose restart open-webui
+```
 
 ### コンテナの起動
 
