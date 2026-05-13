@@ -92,7 +92,7 @@ nvidia-ctk cdi list
 動作確認:
 
 ```bash
-podman run --rm --device nvidia.com/gpu=all nvidia/cuda:12.0-base nvidia-smi
+podman run --rm --device nvidia.com/gpu=all docker.io/nvidia/cuda:12.3.1-base-ubuntu22.04 nvidia-smi
 ```
 
 コンテナ内から GPU が見えれば準備完了である。
