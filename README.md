@@ -21,6 +21,15 @@ Claude Code (Director / Orchestrator)  ← WSL ネイティブ実行
 
 Claude Code をディレクターとして配置し、配下のエージェントをコンテナで隔離することで、自律実行のリスクをホスト OS から切り離す。
 
+### アクセス方法
+
+| アクセス元 | URL | 方法 |
+|------------|-----|------|
+| WSL 内 / Windows | `http://localhost:3000` | ポートバインド (`127.0.0.1:3000`) |
+| Mac | `http://localhost:3000` | SSH ポートフォワード (後述) |
+
+Open WebUI は `127.0.0.1` (ループバック) にのみバインドされているため、**同一マシン外からは直接アクセスできない**。ループバックトラフィックはマシン外に出ないため、HTTP でも安全である。
+
 ---
 
 ## 前提環境
@@ -140,7 +149,7 @@ podman-compose restart open-webui
 podman-compose up -d
 ```
 
-Ollama・Open WebUI・Caddy が一括で起動する。
+Ollama・Open WebUI が一括で起動する。
 
 ### モデルのダウンロード
 
@@ -148,26 +157,48 @@ Ollama・Open WebUI・Caddy が一括で起動する。
 podman exec -it ollama ollama pull llama3.2
 ```
 
-`http://localhost:3000` をブラウザで開いて初期設定を行う。
+### アクセス確認
+
+WSL 内または Windows ブラウザから:
+
+```
+http://localhost:3000
+```
 
 ---
 
-## 5. Caddy によるリバースプロキシ
+## 5. Mac からのアクセス (SSH ポートフォワード)
 
-`Caddyfile` のホスト名を環境に合わせて書き換える。
+Mac から WSL2 上の Open WebUI にアクセスするには SSH ポートフォワードを使う。
+SSH 暗号化トンネル経由のため HTTP でも安全である。
 
+```bash
+# Mac のターミナルで実行 (WSL2 の IP は `hostname -I` で確認)
+ssh -L 3000:localhost:3000 <WSL2_USERNAME>@<WSL2_IP>
 ```
-https://your-host.local:8080 {
-  tls internal
-  reverse_proxy open-webui:8080
-}
-```
 
-Caddy が自動的に自己署名証明書を生成する。生成された root 証明書をブラウザにインポートするとセキュリティ警告を解消できる。
+その後 Mac のブラウザで `http://localhost:3000` を開く。
+
+### Tailscale MagicDNS を使う場合 (推奨)
+
+Tailscale が有効であれば、WSL2 の MagicDNS ホスト名 (`drs` 等) で直接 SSH できる。
+
+```bash
+ssh -L 3000:localhost:3000 <USERNAME>@drs
+```
 
 ---
 
 ## セキュリティに関する考察
+
+### ループバックバインドの意義
+
+`docker-compose.yml` では Open WebUI を `127.0.0.1:3000` にバインドしている。`0.0.0.0` (全インタフェース) ではないため、**同一マシン外からは直接ポートに届かない**。
+
+- WSL2 内・Windows ホストからは `localhost:3000` でアクセス可
+- Mac や外部ネットワークからはアクセス不可 (SSH トンネルが必要)
+
+ローカル開発で HTTPS が不要な理由: ループバックトラフィックはネットワークインタフェースを通らないため、傍受が物理的に不可能である。
 
 ### rootless コンテナの意義
 
