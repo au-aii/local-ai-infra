@@ -23,7 +23,7 @@ services:
       - 'WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}'
 
   caddy:
-    image: caddy:alpine
+    image: docker.io/library/caddy:alpine
     container_name: caddy_openwebui
     restart: always
     ports:
