@@ -1,3 +1,4 @@
-:8080 {
+https://drs.local:8080 {
+  tls internal
   reverse_proxy open-webui:8080
 }
